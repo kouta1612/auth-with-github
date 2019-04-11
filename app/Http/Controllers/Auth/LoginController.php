@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use Socialite;
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 
@@ -35,5 +36,34 @@ class LoginController extends Controller
     public function __construct()
     {
         $this->middleware('guest')->except('logout');
+    }
+
+    /**
+     * GitHubの認証ページヘユーザーをリダイレクト
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function redirectToProvider()
+    {
+        return Socialite::driver('github')->redirect();
+    }
+
+    /**
+     * GitHubからユーザー情報を取得
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function handleProviderCallback()
+    {
+        $user = $this->findOrCreateGithubUser(
+            Socialite::driver('github')->user()
+        );
+    }
+
+    protected function findOrCreateGithubUser($githubUser)
+    {
+        $user = User::firstOrNew(['github_id' => $githubUser->id]);
+
+        if ($user->exists) return $user;
     }
 }
