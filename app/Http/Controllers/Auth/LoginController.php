@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\User;
 use Socialite;
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
@@ -26,7 +27,7 @@ class LoginController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = '/home';
+    protected $redirectTo = '/';
 
     /**
      * Create a new controller instance.
@@ -58,6 +59,10 @@ class LoginController extends Controller
         $user = $this->findOrCreateGithubUser(
             Socialite::driver('github')->user()
         );
+
+        auth()->login($user);
+
+        return redirect('/');
     }
 
     protected function findOrCreateGithubUser($githubUser)
@@ -65,5 +70,13 @@ class LoginController extends Controller
         $user = User::firstOrNew(['github_id' => $githubUser->id]);
 
         if ($user->exists) return $user;
+
+        $user->fill([
+            'username' => $githubUser->nickname,
+            'email' => $githubUser->email,
+            'avatar' => $githubUser->avatar
+        ])->save();
+
+        return $user;
     }
 }

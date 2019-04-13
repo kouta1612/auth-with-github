@@ -15,5 +15,13 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('login/github', 'Auth\LoginController@redirectToProvider');
-Route::get('login/github/callback', 'Auth\LoginController@handleProviderCallback');
+Route::get('/dashboard', function() {
+    return 'You are logged in user!';
+})->middleware('auth');
+
+Route::get('/login/github', 'Auth\LoginController@redirectToProvider')->name('login');
+Route::get('/login/github/callback', 'Auth\LoginController@handleProviderCallback');
+Route::get('/logout', function() {
+    Auth::logout();
+    return redirect('/');
+});
